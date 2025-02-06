@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import DoctorView, PatientView
+from .views import DoctorView, PatientView, ServiceView, VisitView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -30,6 +30,16 @@ urlpatterns = [
         'get': 'retrieve',
         'put': 'update',
         'delete': 'destroy'
+    })
+         ),
+    path('service/', ServiceView.as_view({
+        'get': 'list',
+        'post': 'create'
+    })
+         ),
+    path('visit/', VisitView.as_view({
+        'get': 'list',
+        'post': 'create'
     })
          ),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
