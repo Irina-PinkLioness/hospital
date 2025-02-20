@@ -1,3 +1,5 @@
+from rest_framework.exceptions import ValidationError
+
 from rest_framework import serializers
 from .models import *
 
@@ -5,7 +7,6 @@ class DoctorListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Doctor
         fields = ['full_name', 'contact_info', 'office']
-
 
 class DoctorRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,19 +28,14 @@ class PatientListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
     class Meta:
         model = Patient
-        fields = '__all__'
+        fields = ['last_name', 'age', 'gender', 'id']
 
 class PatientRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = '__all__'
 
-class PatientCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Patient
-        fields = '__all__'
-
-class PatientUpdateSerializer(serializers.ModelSerializer):
+class PatientCreateOrUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = '__all__'
@@ -48,19 +44,14 @@ class PatientUpdateSerializer(serializers.ModelSerializer):
 class ServiceListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
-        fields = '__all__'
+        fields = ['name', 'price']
 
 class ServiceRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = '__all__'
 
-class ServiceCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Service
-        fields = '__all__'
-
-class ServiceUpdateSerializer(serializers.ModelSerializer):
+class ServiceCreateOrUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = '__all__'
@@ -70,23 +61,44 @@ class VisitListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Visit
         fields = '__all__'
-    status = serializers.CharField()
-    visit_time = serializers.DateTimeField()
 
 class VisitRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Visit
         fields = '__all__'
 
-class VisitCreateSerializer(serializers.ModelSerializer):
+
+class VisitCreateOrUpdateSerializer(serializers.ModelSerializer):
+
+    def get_validator_schedule(self,value):
+        visit_count = value.objects.count()
+        if 24 <= visit_count:
+            raise ValidationError('Schedule is full')
+        return value
+
     class Meta:
         model = Visit
         fields = '__all__'
 
-class VisitUpdateSerializer(serializers.ModelSerializer):
+
+class ScheduleListSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Visit
+        model = Schedule
         fields = '__all__'
+
+class ScheduleRetrieveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Schedule
+        fields = '__all__'
+
+class ScheduleCreateOrUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Schedule
+        fields = '__all__'
+
+
+
+
 
 
 

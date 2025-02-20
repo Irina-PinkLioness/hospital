@@ -1,3 +1,5 @@
+import timestamp
+from django.contrib.auth.models import User
 from django.db import models
 
 class Office(models.Model):
@@ -39,6 +41,7 @@ class Patient(models.Model):
     def full_name(self):
         return '%s %s' % (self.first_name, self.last_name)
 
+
 class Service(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField()
@@ -47,21 +50,85 @@ class Service(models.Model):
     def __str__(self):
         return self.name
 
+
+class Schedule(models.Model):
+    timestamp_start = models.DateTimeField()
+    timestamp_end = models.DateTimeField()
+    doctor = models.ForeignKey(Doctor, null=True, on_delete=models.SET_NULL, related_name='schedules')
+
+    def __str__(self):
+        return '%s %s' % (self.doctor.full_name, str(self.timestamp_start))
+
+
+def get_start(schedule='schedule'):
+    if schedule:
+        return Schedule.timestamp_start
+    else:
+        return "Visits closed"
+
+
 class Visit(models.Model):
+    PLANNED = "planned"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
     STATUS_CHOICES = {
         "PL": "planned",
         "CO": "completed",
         "CA": "cancelled"
     }
     status = models.CharField(max_length=2, choices=STATUS_CHOICES)
-    visit_time = models.DateTimeField()
-    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name= 'visits')
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name= 'visits')
     service =models.ForeignKey(Service, on_delete=models.CASCADE, null=True, blank=True)
+    schedule = models.OneToOneField(Schedule, null=True, on_delete=models.CASCADE, related_name= 'visits')
     notes = models.TextField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.doctor.full_name} - {self.patient.full_name} - {self.visit_time}"
+        return f"{self.patient.full_name} - {self.schedule}"
+
+
+class Notification(models.Model):
+    STATUS_CHOICES = {
+        "NEW": "new",
+        "READ": "reading",
+        "ARCH": "archived"
+    }
+    NEW_VISIT = "NEW_VISIT"
+    VISIT_CANCELED = "VISIT_CANCELED"
+    OTHER = "OTHER"
+    TYPE_CHOICES = {
+        "NEW_VISIT": "new visit",
+        "CANCEL": "visit cancelled",
+        "OTHER": "other"
+    }
+
+    sender = models.ForeignKey(User, related_name='send_notification', on_delete=models.CASCADE)
+    recipient = models.ForeignKey(User, related_name='received_notification', on_delete=models.CASCADE)
+    message = models.TextField()
+    status = models.CharField(max_length=4, choices=STATUS_CHOICES, default="NEW")
+    notification_type = models.CharField(max_length=10, choices=TYPE_CHOICES, default=OTHER)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f'{self.sender} -> {self.recipient} : {self.message[:300]}'
+
+    class Mets:
+        ordering = ['-created_at']
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
